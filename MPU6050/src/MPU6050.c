@@ -16,16 +16,7 @@
 #include "freertos/FreeRTOS.h"
 #include "MPU6050.h"
 
-#define I2C_MASTER_SCL_IO           22           // SCL pin
-#define I2C_MASTER_SDA_IO           21           // SDA pin
-#define I2C_MASTER_NUM              I2C_NUM_0    // ESP I2C bus
-#define I2C_MASTER_FREQ_HZ          400000       // I2C master clock frequency
-#define I2C_MASTER_TX_BUF_DISABLE   0            // No I2C master tx buffer
-#define I2C_MASTER_RX_BUF_DISABLE   0            // No I2C master rx buffer
-#define I2C_MASTER_TIMEOUT_MS       1000
-
 // Global vars
-i2c_master_bus_config_t i2cConfig;  // Master I2C config, generated and initialized by component user
 uint8_t reg_data[2];                // Used during I2C comms, kept on the heap for memory management
 uint8_t read_reg;                   // Used during I2C comms, kept on the heap for memory management
 double accel[3];                    // Used to pass accelerometer readings around
@@ -35,14 +26,6 @@ bool calibration_done = false;      // Global flag for whether calibration has b
 int16_t accel_correction[3];        // Used to correct the accelerometer reading
 int16_t gyro_correction[3];         // Used to correct the gyroscope reading
 
-//i2c_master_bus_config_t i2cConfig = {
-//    .clk_source = I2C_CLK_SRC_DEFAULT,
-//    .scl_io_num = I2C_MASTER_SCL_IO,
-//    .sda_io_num = I2C_MASTER_SDA_IO,
-//    .glitch_ignore_cnt = 7,
-//    .flags.enable_internal_pullup = true
-//};
-
 MPU6050_CONFIG mpuConfig;
 i2c_master_bus_handle_t i2cBusHandle;
 i2c_master_dev_handle_t mpuSensorHandle;
@@ -51,35 +34,9 @@ static uint32_t ONE_HUNDRED_MILLI_DELAY = (100 / portTICK_PERIOD_MS);
 static uint32_t TEN_MILLI_DELAY = (10 / portTICK_PERIOD_MS);
 
 /**
- * Application main
- */
-void app_main(void) {
-    setup_i2c();
-    setup_mpu_sensor(true, X);
-
-    while (1) {
-        read_accel(accel);
-        read_temp(&temp);
-        read_gyro(gyro);
-        printf("Accel: x: %0.3f, y: %0.3f, z: %0.3f   Temp: %0.3f  Gyro: x: %0.3f, y: %0.3f, z: %0.3f\n", 
-                    accel[0], accel[1], accel[2], temp, gyro[0], gyro[1], gyro[2]);
-        vTaskDelay(ONE_HUNDRED_MILLI_DELAY);
-    }
-}
-
-/**
- * Initializes the I2C bus using the global I2C config.
- * NOTE: GPIO 21 and 22 are the standard pins for I2C SDA and SCL respectively.
- */
-void setup_i2c() {
-    ESP_ERROR_CHECK(i2c_new_master_bus(&i2cConfig, &i2cBusHandle));
-}
-
-/**
  * Sets up the MPU6050 sensor for operations.
  */
-void setup_mpu_sensor(i1c_master_bus_handle_t i2c_bus_handle, MPU6050_Config mpu_config, 
-        bool should_cal, enum Cal_Axis cal_axis) {
+void setup_mpu_sensor(i1c_master_bus_handle_t i2c_bus_handle, MPU6050_Config mpu_config) {
 
     i2cBusHandle = i2c_bus_handle;
     ESP_ERROR_CHECK(i2c_master_probe(i2c_bus_handle, mpu_config->sensor_address, -1));
