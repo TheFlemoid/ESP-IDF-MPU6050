@@ -14,6 +14,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "driver/i2c_master.h"
 
 #define MPU6050_SENSOR_ADDR         0x68         // I2C address of the MPU6050
 #define MPU6050_PWR_MGMT_1          0x6b         // MPU6050 pwr mgmt register
@@ -48,11 +49,10 @@ typedef struct _mpu6050Config {
 } MPU6050_CONFIG;
 
 // Function declaration
-void setup_i2c();
-void setup_mpu_sensor(bool should_cal, enum Cal_Axis cal_axis);
+void setup_mpu_sensor(i2c_master_bus_handle_t *i2c_bus_handle, MPU6050_CONFIG *mpu_config);
 void read_accel(double* accel);
 void read_accel_raw(int16_t* accel_raw);
 void read_temp(double* temp);
 void read_gyro(double* gyro);
 void read_gyro_raw(int16_t* gyro_raw);
-void calibrate_module(enum Cal_Axis cal_axis);
+void calibrate_module(CAL_AXIS cal_axis);

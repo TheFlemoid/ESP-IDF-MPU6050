@@ -1,5 +1,5 @@
 /**
- * File:       MPU6050.c
+ * File:       MPU6050_serial_read.c
  * Author:     Franklyn Dahlberg
  * Created:    25 December, 2025
  * Copyright:  2025 (c) Franklyn Dahlberg
@@ -10,6 +10,10 @@
  * Example application to configure an MPU-6050, calibrate it, and output the IMU data to serial.
  */
 #include "MPU6050.h"
+#include "driver/i2c_master.h"
+
+#define I2C_MASTER_SDA_IO 21
+#define I2C_MASTER_SCL_IO 22
 
 // Global vars
 i2c_master_bus_config_t i2cConfig = {
@@ -24,17 +28,17 @@ i2c_master_bus_config_t i2cConfig = {
  * Application main
  */
 void app_main(void) {
-    setup_i2c();
-    setup_mpu_sensor(true, X);
+    //setup_i2c();
+    //setup_mpu_sensor(true, X);
 
-    while (1) {
-        read_accel(accel);
-        read_temp(&temp);
-        read_gyro(gyro);
-        printf("Accel: x: %0.3f, y: %0.3f, z: %0.3f   Temp: %0.3f  Gyro: x: %0.3f, y: %0.3f, z: %0.3f\n", 
-                    accel[0], accel[1], accel[2], temp, gyro[0], gyro[1], gyro[2]);
-        vTaskDelay(ONE_HUNDRED_MILLI_DELAY);
-    }
+    //while (1) {
+    //    read_accel(accel);
+    //    read_temp(&temp);
+    //    read_gyro(gyro);
+    //    printf("Accel: x: %0.3f, y: %0.3f, z: %0.3f   Temp: %0.3f  Gyro: x: %0.3f, y: %0.3f, z: %0.3f\n", 
+    //                accel[0], accel[1], accel[2], temp, gyro[0], gyro[1], gyro[2]);
+    //    vTaskDelay(ONE_HUNDRED_MILLI_DELAY);
+    //}
 }
 
 /**
@@ -42,6 +46,6 @@ void app_main(void) {
  * NOTE: GPIO 21 and 22 are the standard pins for I2C SDA and SCL respectively.
  */
 void setup_i2c() {
-    ESP_ERROR_CHECK(i2c_new_master_bus(&i2cConfig, &i2cBusHandle));
+    //ESP_ERROR_CHECK(i2c_new_master_bus(&i2cConfig, &i2cBusHandle));
 }
 

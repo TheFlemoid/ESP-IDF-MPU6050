@@ -30,17 +30,25 @@ MPU6050_CONFIG mpuConfig;
 i2c_master_bus_handle_t i2cBusHandle;
 i2c_master_dev_handle_t mpuSensorHandle;
 
-static uint32_t ONE_HUNDRED_MILLI_DELAY = (100 / portTICK_PERIOD_MS);
 static uint32_t TEN_MILLI_DELAY = (10 / portTICK_PERIOD_MS);
+
+i2c_device_config_t mpuI2cConfig = {
+    .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+    .device_address = 0x38,
+    .scl_speed_hz = 100000,
+};
 
 /**
  * Sets up the MPU6050 sensor for operations.
  */
-void setup_mpu_sensor(i1c_master_bus_handle_t i2c_bus_handle, MPU6050_Config mpu_config) {
+void setup_mpu_sensor(i2c_master_bus_handle_t *i2c_bus_handle, MPU6050_CONFIG *mpu_config) {
 
-    i2cBusHandle = i2c_bus_handle;
-    ESP_ERROR_CHECK(i2c_master_probe(i2c_bus_handle, mpu_config->sensor_address, -1));
-    ESP_ERROR_CHECK(i2c_master_bus_add_device(i2cBusHandle, &mpu6050Config, &mpuSensorHandle));
+    i2cBusHandle = *i2c_bus_handle;
+    mpuConfig = *mpu_config;
+
+    // Setup the MPU6050 I2C component
+    ESP_ERROR_CHECK(i2c_master_probe(i2cBusHandle, mpu_config->sensor_address, -1));
+    ESP_ERROR_CHECK(i2c_master_bus_add_device(i2cBusHandle, &mpuI2cConfig, &mpuSensorHandle));
 
     // The sensor powers on in "sleep mode", so this "wakes up" the sensor to place 
     // it in measure mode.
@@ -64,9 +72,9 @@ void setup_mpu_sensor(i1c_master_bus_handle_t i2c_bus_handle, MPU6050_Config mpu
     monitor_cmd[1] = 0x09;
     ESP_ERROR_CHECK(i2c_master_transmit(mpuSensorHandle, monitor_cmd, 2, -1));
 
-    if (should_cal) {
-        calibrate_module(cal_axis);
-    }
+    //if (mpu_config->should_calibrate) {
+    //    calibrate_module(mpu_config->calibration_axis);
+    //}
 
     printf("MPU6050 initialized and ready for sampling.\n");
 }
@@ -173,7 +181,7 @@ void read_gyro_raw(int16_t* gyro_raw) {
  *       be set to 1g during cal, and the other axes set to 0g.  This should be performed while the module
  *       is stationary.
  */
- void calibrate_module(enum Cal_Axis cal_axis) {
+ void calibrate_module(CAL_AXIS cal_axis) {
     int32_t accel_cals[3] = {0, 0, 0};
     int32_t gyro_cals[3] = {0, 0, 0};
 
