@@ -9,43 +9,57 @@
 /**
  * Example application to configure an MPU-6050, calibrate it, and output the IMU data to serial.
  */
-#include "MPU6050.h"
+#include <stdint.h>
+#include "esp_log.h"
 #include "driver/i2c_master.h"
+#include "freertos/FreeRTOS.h"
+#include "MPU6050.h"
 
-#define I2C_MASTER_SDA_IO 21
-#define I2C_MASTER_SCL_IO 22
+#define MPU6050_SENSOR_ADDRESS   0x68
+#define I2C_MASTER_SDA_IO        21
+#define I2C_MASTER_SCL_IO        22
 
 // Global vars
-i2c_master_bus_config_t i2cConfig = {
-    .clk_source = I2C_CLK_SRC_DEFAULT,
-    .scl_io_num = I2C_MASTER_SCL_IO,
-    .sda_io_num = I2C_MASTER_SDA_IO,
-    .glitch_ignore_cnt = 7,
-    .flags.enable_internal_pullup = true
-};
+i2c_master_bus_handle_t i2cBusHandle;
+double accelReadings[3];
+double gyroReadings[3];
+double tempReadings;
+
+static uint32_t ONE_HUNDRED_MILLI_DELAY = (100 / portTICK_PERIOD_MS);
 
 /**
  * Application main
  */
 void app_main(void) {
-    //setup_i2c();
-    //setup_mpu_sensor(true, X);
 
-    //while (1) {
-    //    read_accel(accel);
-    //    read_temp(&temp);
-    //    read_gyro(gyro);
-    //    printf("Accel: x: %0.3f, y: %0.3f, z: %0.3f   Temp: %0.3f  Gyro: x: %0.3f, y: %0.3f, z: %0.3f\n", 
-    //                accel[0], accel[1], accel[2], temp, gyro[0], gyro[1], gyro[2]);
-    //    vTaskDelay(ONE_HUNDRED_MILLI_DELAY);
-    //}
-}
+    // Setup the I2C bus, with GPIO 21 as SDA and GPIO 22 as SCL
+    i2c_master_bus_config_t i2cConfig = {
+        .clk_source = I2C_CLK_SRC_DEFAULT,
+        .scl_io_num = I2C_MASTER_SCL_IO,
+        .sda_io_num = I2C_MASTER_SDA_IO,
+        .glitch_ignore_cnt = 7,
+        .flags.enable_internal_pullup = true
+    };
+    ESP_ERROR_CHECK(i2c_new_master_bus(&i2cConfig, &i2cBusHandle));
 
-/**
- * Initializes the I2C bus using the global I2C config.
- * NOTE: GPIO 21 and 22 are the standard pins for I2C SDA and SCL respectively.
- */
-void setup_i2c() {
-    //ESP_ERROR_CHECK(i2c_new_master_bus(&i2cConfig, &i2cBusHandle));
+    // Make an MPU6050_CONFIG object, with 0x68 as the I2C address, calibrating,
+    // with the Z-axis facing down.
+    MPU6050_CONFIG mpuConfig = {
+        .sensor_address = MPU6050_SENSOR_ADDRESS,
+        .should_calibrate = true,
+        .calibration_axis = Z
+    };
+    setup_mpu_sensor(&i2cBusHandle, &mpuConfig);
+
+    // In a while loop, read the sensor and print the readings
+    while (1) {
+        read_accel(accelReadings);
+        read_temp(&tempReadings);
+        read_gyro(gyroReadings);
+        printf("Accel: x: %0.3f, y: %0.3f, z: %0.3f   Temp: %0.3f  Gyro: x: %0.3f, y: %0.3f, z: %0.3f\n", 
+                    accelReadings[0], accelReadings[1], accelReadings[2], tempReadings, gyroReadings[0], 
+                    gyroReadings[1], gyroReadings[2]);
+        vTaskDelay(ONE_HUNDRED_MILLI_DELAY);
+    }
 }
 

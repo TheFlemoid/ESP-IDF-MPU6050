@@ -19,36 +19,31 @@
 // Global vars
 uint8_t reg_data[2];                // Used during I2C comms, kept on the heap for memory management
 uint8_t read_reg;                   // Used during I2C comms, kept on the heap for memory management
-double accel[3];                    // Used to pass accelerometer readings around
-double temp;                        // Used to pass temp readings around
-double gyro[3];                     // Used to pass gyro readings around
 bool calibration_done = false;      // Global flag for whether calibration has been performed
 int16_t accel_correction[3];        // Used to correct the accelerometer reading
 int16_t gyro_correction[3];         // Used to correct the gyroscope reading
 
 MPU6050_CONFIG mpuConfig;
-i2c_master_bus_handle_t i2cBusHandle;
 i2c_master_dev_handle_t mpuSensorHandle;
 
 static uint32_t TEN_MILLI_DELAY = (10 / portTICK_PERIOD_MS);
-
-i2c_device_config_t mpuI2cConfig = {
-    .dev_addr_length = I2C_ADDR_BIT_LEN_7,
-    .device_address = 0x38,
-    .scl_speed_hz = 100000,
-};
 
 /**
  * Sets up the MPU6050 sensor for operations.
  */
 void setup_mpu_sensor(i2c_master_bus_handle_t *i2c_bus_handle, MPU6050_CONFIG *mpu_config) {
 
-    i2cBusHandle = *i2c_bus_handle;
     mpuConfig = *mpu_config;
 
+    i2c_device_config_t mpuI2cConfig = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = mpuConfig.sensor_address,
+        .scl_speed_hz = 100000,
+    };
+
     // Setup the MPU6050 I2C component
-    ESP_ERROR_CHECK(i2c_master_probe(i2cBusHandle, mpu_config->sensor_address, -1));
-    ESP_ERROR_CHECK(i2c_master_bus_add_device(i2cBusHandle, &mpuI2cConfig, &mpuSensorHandle));
+    ESP_ERROR_CHECK(i2c_master_probe(*i2c_bus_handle, mpu_config->sensor_address, -1));
+    ESP_ERROR_CHECK(i2c_master_bus_add_device(*i2c_bus_handle, &mpuI2cConfig, &mpuSensorHandle));
 
     // The sensor powers on in "sleep mode", so this "wakes up" the sensor to place 
     // it in measure mode.
@@ -67,14 +62,14 @@ void setup_mpu_sensor(i2c_master_bus_handle_t *i2c_bus_handle, MPU6050_CONFIG *m
     monitor_cmd[1] = 0x00;
     ESP_ERROR_CHECK(i2c_master_transmit(mpuSensorHandle, monitor_cmd, 2, -1));
 
-    // Set the sensors sample rate to 100Hz (1kHz / (9 + 1))
+    // Set the sensors sample rate to 125Hz (1kHz / (7 + 1))
     monitor_cmd[0] = MPU6050_SMPLRT_DIV;
-    monitor_cmd[1] = 0x09;
+    monitor_cmd[1] = 0x07;
     ESP_ERROR_CHECK(i2c_master_transmit(mpuSensorHandle, monitor_cmd, 2, -1));
 
-    //if (mpu_config->should_calibrate) {
-    //    calibrate_module(mpu_config->calibration_axis);
-    //}
+    if (mpuConfig.should_calibrate) {
+        calibrate_module(mpuConfig.calibration_axis);
+    }
 
     printf("MPU6050 initialized and ready for sampling.\n");
 }
