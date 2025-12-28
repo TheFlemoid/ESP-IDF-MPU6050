@@ -2,7 +2,7 @@
 
 ## ESP-32 drivers for MPU6050 IMUs. ##
 
-The MPU6050 is a cheap, powerful, single board, I2C controlled IMU module that incorporates seven separate sensors: a three axis accelerometer, a three access gyroscope, and a temperature sensor.  Other ESP-IDF component libraries for this sensor [exist](https://github.com/MianIdrees/mpu6050_interfacing_with_ESP32_using_ESP-IDF/tree/main) and are very feature complete, however all of the ones I was able to find unfortunately use ESP-IDFs older I2C drivers instead of the new ones.  
+The MPU6050 is a cheap, powerful, single board, I2C controlled IMU module that incorporates seven separate sensors: a three axis accelerometer, a three access gyroscope, and a temperature sensor.  The datasheet for this IMU can be [found in the resources directory](./resources/MPU-6000-Datasheet1.pdf).  Other ESP-IDF component libraries for this sensor [exist](https://github.com/MianIdrees/mpu6050_interfacing_with_ESP32_using_ESP-IDF/tree/main) and are very feature complete, however all of the ones I was able to find unfortunately use ESP-IDFs older I2C drivers instead of the new ones.  
 
 &nbsp;
 
