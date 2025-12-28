@@ -9,7 +9,6 @@
 /**
  * Header for MPU6050 ESP-IDF component using latest I2C library
  */
-
 #pragma once
 
 #include <stdint.h>

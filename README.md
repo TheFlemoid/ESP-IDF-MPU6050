@@ -44,7 +44,7 @@ To use this driver in a project, simply drop the `MPU6050` directory from this r
 
 An example of usage of this component can be found in this repo itself, in the [`MPU6050/examples/MPU6050_serial_read`](MPU6050/examples/MPU6050_serial_read) directory.  If you're using ESP-IDF through VSCode, open that folder in VSCode (instead of the root directory) and say okay at the prompt to generate `compile_commands.json`.
 
-As stated above, this driver assumes you're using the ESP-IDF [i2c_master_controller](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/peripherals/i2c.html#i2c_master_controller) driver provided by Espressif.  So, in your main project, include the `driver/i2c_master.h` header from ESP-IDF and setup a `i2c_master_bus_handle_t` that defines I2C master bus object.  This gets passed into the MPU6050 library during initialization.  This will require picking GPIOs for the SDA and SCL lines.  These are typically either 21 and 22 respectively, but most other GPIO pins can be configured as I2C if desired.  Once the bus I2C bus has been created, define a `MPU6050_CONFIG` struct as follows:
+As stated above, this driver assumes you're using the ESP-IDF [i2c_master_controller](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/peripherals/i2c.html#i2c_master_controller) driver provided by Espressif.  So, in your main project, include the `driver/i2c_master.h` header from ESP-IDF and setup a `i2c_master_bus_handle_t` that defines I2C master bus object.  This gets passed into the MPU6050 library during initialization.  This will require picking GPIOs for the SDA and SCL lines.  These are typically either 21 and 22 respectively, but most other GPIO pins can be configured as I2C if desired.  Once the I2C bus has been created, define a `MPU6050_CONFIG` struct as follows:
 ```
 MPU6050_CONFIG mpuConfig = {
     .sensor_address = MPU6050_SENSOR_ADDRESS, // By default this is 0x68, if pin AD0 is pulled 
@@ -73,7 +73,7 @@ After calibration, the module is up and ready for use.  Basic operation consists
 <details>
 <summary><b>read_accel (double* accelReadings)</b></summary>
 <h4>Description</h4>
-Polls the sensor for accelerometer readings on the X, Y, and Z axes, converts them to 'G' units, and fills out the param double array with those values.  The only parameter for this function is an array of three doubles (eg. double accelReadings[3]).  When returned the readings will be populated in the array with the X axis at index 0, the Y axis at index 1, and the Z axis at index 2.
+Polls the sensor for accelerometer readings on the X, Y, and Z axes, converts them to 'G' units, and fills out the param double array with those values.  The only parameter for this function is an array of three doubles (eg. `double accelReadings[3]`).  When returned the readings will be populated in the array with the X axis at index 0, the Y axis at index 1, and the Z axis at index 2.
 </details>
 
 ---
@@ -81,7 +81,7 @@ Polls the sensor for accelerometer readings on the X, Y, and Z axes, converts th
 <details>
 <summary><b>read_gyro (double* gyroReadings)</b></summary>
 <h4>Description</h4>
-Polls the sensor for gyroscope readings on the X, Y, and Z axes, converts them to degrees per second units, and fills out the param double array with those values.  The only parameter for this function is an array of three doubles (eg. double gyroReadings[3]).  When returned the readings will be populated in the array with the X axis at index 0, the Y axis at index 1, and the Z axis at index 2.
+Polls the sensor for gyroscope readings on the X, Y, and Z axes, converts them to degrees per second units, and fills out the param double array with those values.  The only parameter for this function is an array of three doubles (eg. `double gyroReadings[3]`).  When returned the readings will be populated in the array with the X axis at index 0, the Y axis at index 1, and the Z axis at index 2.
 </details>
 
 ---
