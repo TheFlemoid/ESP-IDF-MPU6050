@@ -16,74 +16,34 @@
 #include "freertos/FreeRTOS.h"
 #include "MPU6050.h"
 
-#define I2C_MASTER_SCL_IO           22           // SCL pin
-#define I2C_MASTER_SDA_IO           21           // SDA pin
-#define I2C_MASTER_NUM              I2C_NUM_0    // ESP I2C bus
-#define I2C_MASTER_FREQ_HZ          400000       // I2C master clock frequency
-#define I2C_MASTER_TX_BUF_DISABLE   0            // No I2C master tx buffer
-#define I2C_MASTER_RX_BUF_DISABLE   0            // No I2C master rx buffer
-#define I2C_MASTER_TIMEOUT_MS       1000
-
 // Global vars
-i2c_master_bus_config_t i2cConfig;  // Master I2C config, generated and initialized by component user
 uint8_t reg_data[2];                // Used during I2C comms, kept on the heap for memory management
 uint8_t read_reg;                   // Used during I2C comms, kept on the heap for memory management
-double accel[3];                    // Used to pass accelerometer readings around
-double temp;                        // Used to pass temp readings around
-double gyro[3];                     // Used to pass gyro readings around
 bool calibration_done = false;      // Global flag for whether calibration has been performed
 int16_t accel_correction[3];        // Used to correct the accelerometer reading
 int16_t gyro_correction[3];         // Used to correct the gyroscope reading
 
-//i2c_master_bus_config_t i2cConfig = {
-//    .clk_source = I2C_CLK_SRC_DEFAULT,
-//    .scl_io_num = I2C_MASTER_SCL_IO,
-//    .sda_io_num = I2C_MASTER_SDA_IO,
-//    .glitch_ignore_cnt = 7,
-//    .flags.enable_internal_pullup = true
-//};
-
 MPU6050_CONFIG mpuConfig;
-i2c_master_bus_handle_t i2cBusHandle;
 i2c_master_dev_handle_t mpuSensorHandle;
 
-static uint32_t ONE_HUNDRED_MILLI_DELAY = (100 / portTICK_PERIOD_MS);
 static uint32_t TEN_MILLI_DELAY = (10 / portTICK_PERIOD_MS);
-
-/**
- * Application main
- */
-void app_main(void) {
-    setup_i2c();
-    setup_mpu_sensor(true, X);
-
-    while (1) {
-        read_accel(accel);
-        read_temp(&temp);
-        read_gyro(gyro);
-        printf("Accel: x: %0.3f, y: %0.3f, z: %0.3f   Temp: %0.3f  Gyro: x: %0.3f, y: %0.3f, z: %0.3f\n", 
-                    accel[0], accel[1], accel[2], temp, gyro[0], gyro[1], gyro[2]);
-        vTaskDelay(ONE_HUNDRED_MILLI_DELAY);
-    }
-}
-
-/**
- * Initializes the I2C bus using the global I2C config.
- * NOTE: GPIO 21 and 22 are the standard pins for I2C SDA and SCL respectively.
- */
-void setup_i2c() {
-    ESP_ERROR_CHECK(i2c_new_master_bus(&i2cConfig, &i2cBusHandle));
-}
 
 /**
  * Sets up the MPU6050 sensor for operations.
  */
-void setup_mpu_sensor(i1c_master_bus_handle_t i2c_bus_handle, MPU6050_Config mpu_config, 
-        bool should_cal, enum Cal_Axis cal_axis) {
+void setup_mpu_sensor(i2c_master_bus_handle_t *i2c_bus_handle, MPU6050_CONFIG *mpu_config) {
 
-    i2cBusHandle = i2c_bus_handle;
-    ESP_ERROR_CHECK(i2c_master_probe(i2c_bus_handle, mpu_config->sensor_address, -1));
-    ESP_ERROR_CHECK(i2c_master_bus_add_device(i2cBusHandle, &mpu6050Config, &mpuSensorHandle));
+    mpuConfig = *mpu_config;
+
+    i2c_device_config_t mpuI2cConfig = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = mpuConfig.sensor_address,
+        .scl_speed_hz = 100000,
+    };
+
+    // Setup the MPU6050 I2C component
+    ESP_ERROR_CHECK(i2c_master_probe(*i2c_bus_handle, mpu_config->sensor_address, -1));
+    ESP_ERROR_CHECK(i2c_master_bus_add_device(*i2c_bus_handle, &mpuI2cConfig, &mpuSensorHandle));
 
     // The sensor powers on in "sleep mode", so this "wakes up" the sensor to place 
     // it in measure mode.
@@ -102,13 +62,13 @@ void setup_mpu_sensor(i1c_master_bus_handle_t i2c_bus_handle, MPU6050_Config mpu
     monitor_cmd[1] = 0x00;
     ESP_ERROR_CHECK(i2c_master_transmit(mpuSensorHandle, monitor_cmd, 2, -1));
 
-    // Set the sensors sample rate to 100Hz (1kHz / (9 + 1))
+    // Set the sensors sample rate to 125Hz (1kHz / (7 + 1))
     monitor_cmd[0] = MPU6050_SMPLRT_DIV;
-    monitor_cmd[1] = 0x09;
+    monitor_cmd[1] = 0x07;
     ESP_ERROR_CHECK(i2c_master_transmit(mpuSensorHandle, monitor_cmd, 2, -1));
 
-    if (should_cal) {
-        calibrate_module(cal_axis);
+    if (mpuConfig.should_calibrate) {
+        calibrate_module(mpuConfig.calibration_axis);
     }
 
     printf("MPU6050 initialized and ready for sampling.\n");
@@ -216,7 +176,7 @@ void read_gyro_raw(int16_t* gyro_raw) {
  *       be set to 1g during cal, and the other axes set to 0g.  This should be performed while the module
  *       is stationary.
  */
- void calibrate_module(enum Cal_Axis cal_axis) {
+ void calibrate_module(CAL_AXIS cal_axis) {
     int32_t accel_cals[3] = {0, 0, 0};
     int32_t gyro_cals[3] = {0, 0, 0};
 
