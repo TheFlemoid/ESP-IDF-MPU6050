@@ -14,7 +14,7 @@ I was recently working on project where I wanted to use an MPU6050, but I also w
 
 &nbsp;
 
-Licensed under the permissive MIT License, these drivers can be copied, used, modified, and distributed openly (even for commercial work).  Attribution and/or bug fixed upstreaming is appreciated, but is in no way mandatory.
+Licensed under the permissive MIT License, these drivers can be copied, used, modified, and distributed openly (even for commercial work).  Attribution and/or upstreaming bug fixes is appreciated, but is in no way mandatory.
 
 ---
 
@@ -26,15 +26,15 @@ Licensed under the permissive MIT License, these drivers can be copied, used, mo
 
 What this driver can currently do:
  - Poll and wake up an MPU6050 IMU using either the default MPU6050 address of 0x68 or the alternate address of 0x69.
- - Configure that MPU6050 module for use, configuring the accelerometer sensitivity, the gyrosope sensitivity, and the sample rate.
+ - Configure the MPU6050 module for use, configuring the accelerometer sensitivity, the gyrosope sensitivity, and the sample rate.
    - Note that there are some stipulations about this, which I will discuss below.
- - Calibrate the accelerometer and the gyroscope sensors.  This is done during initialization (can be turned off if you'd prefer to do it once and just apply those values yourself, as it extends startup time by around 2 seconds, and requires holding the module level and steady during initialization time).
- - Get readings for all three axes of the accelerometer (in units of Earth gravitational constants, or Gs), all three axes of the gyroscope (in units of degrees per second), and the thermometer (in units of degrees celcius).
+ - Calibrate the accelerometer and the gyroscope sensors.  This is done during initialization (can be turned off if you'd prefer to do it once and just apply those values yourself, as it extends startup time by around two secondss and requires holding the module level and steady during initialization time).
+ - Get readings for all three axes of the accelerometer (in units of Earth gravitational constants, or Gs), all three axes of the gyroscope (in units of degrees per second), and the thermometer (in units of degrees celsius).
 
  What this driver cannot currently do:
-  - Regarding the stipulation about MPU6050 initialization alluded to above, the MPU6050 can set the gyroscope to multiple separate sensitivities for both the accelerometer and the gyroscope.  I don't presently support this, and instead just always initialize the accelerometer to +/-2G sensitivity and the gyroscope to +/-250dps.  These are the most accurate readings for slow speed application, and they're what I need for the project I'm working on.  Variation here would be trivial to add and I may just do it anyway for fun, but while writing this I'm basically just setting up the basic component to accomplish what I need.
-  - Similarly, the unit supports multiple sensor reading frequencies.  I always set the sensor frequency to 150Hz even though we may not end up needing that reading.  I could also change this, but it would be a little more involved as it would mess with the calibration sequence.
-  - When using this sensor it's not typical to use the values that it provides directly.  Instead it's more common to do sensor integration, combining the readings of both the accelerometer and the gyro sensors, through a complementary filter or a Kalman filter and getting pitch and roll values that are more stable then the sensors individually provided accelerometer and gyro values.  I'd like to implement this in the library directly, and that's what I intend to do with this library going forward.
+  - Regarding the stipulation about MPU6050 initialization alluded to above, the MPU6050 can set the gyroscope to multiple separate sensitivities for both the accelerometer and the gyroscope.  I don't presently support this, and instead just always initialize the accelerometer to +/-2G sensitivity and the gyroscope to +/-250dps.  These are the most accurate readings for common applications, and they're what I need for the project I'm working on.  Variation here would be trivial to add and I may just do it anyway for fun, but while writing this I'm basically just setting up the basic component to accomplish what I need.
+  - Similarly, the unit supports multiple sensor reading frequencies.  I always set the sensor frequency to 125Hz even if this may result in throwing away readings.  I could also change this, but I didn't see a point in making this variable when writing this component, but would consider it if someone made that point.
+  - When using this sensor it's not typical to use the values that it provides directly.  Instead it's more common to do sensor integration, combining the readings of both the accelerometer and the gyroscope through a complementary filter or a Kalman filter and getting pitch and roll values that are more stable then the sensors individually provided accelerometer and gyro values.  I'd like to implement this in the library directly, and that's what I intend to do with this library going forward.
 
 ---
 
@@ -53,16 +53,16 @@ MPU6050_CONFIG mpuConfig = {
     .should_calibrate = true,                 // True if you want to calibrate, false otherwise
     .calibration_axis = Z                     // Can be X, Y, or Z.  Pick the axis that is
                                               // perpendicular to the Earths surface in your application.
-                                              // Axes are usually silkscreened on the module.
+                                              // Axes are usually silk screened on the module.
 };
 ```
-After creating this struct, initialize the MPU6050 by calling 
+After creating this struct, initialize the MPU6050 by calling:
 ```
 setup_mpu_sensor(&i2cConfig, &mpuConfig)
 ```
-Passing in a reference to your i2c_master_bus_handle_t struct as well as your MPU6050_CONFIG struct.  This will cause the library to set up the MPU6050 I2C device on the bus, and will calibrate the MPU6050 if this was requested.
+Passing in a reference to your i2c_master_bus_handle_t struct as well as your MPU6050_CONFIG struct.  This will cause the library to set up the MPU6050 I2C device on the bus, and will calibrate the MPU6050 if that was requested.
 
-Calibration consists of taking several (default 200) readings over approximately two seconds, averaging those readings out, and then determining "offsets" between what the readings were and what they should have been.  These offsets are used in later readings to correct for sensor inaccuracy.  In order for this process to be accurate, during calibration the module MUST be kept:
+Calibration consists of taking several (default 200) readings over approximately two seconds, averaging those readings, and then determining "offsets" between what the readings were and what they should have been.  These offsets are used in later readings to correct for sensor inaccuracy.  In order for this process to be accurate, during calibration the module MUST be kept:
  - steady, not rotating on any axis
  - level, with the axis that should be perpendicular to the Earth (and thus experiencing 1G of linear acceleration) facing the correct direction
 
@@ -73,7 +73,7 @@ After calibration, the module is up and ready for use.  Basic operation consists
 <details>
 <summary><b>read_accel(double* accelReadings)</b></summary>
 <h4>Description</h4>
-Polls the sensor for accelerometer readings on the X, Y, and Z axes, converts them to 'G' units, and fills out the param double array with those values.  The only parameter for this function is an array of three doubles (ie. double accelReadings[3]).  When returned, the readings will be populated in the array with the X axis at index 0, the Y axis at index 1, and the Z axis at index 2.
+Polls the sensor for accelerometer readings on the X, Y, and Z axes, converts them to 'G' units, and fills out the param double array with those values.  The only parameter for this function is an array of three doubles (eg. double accelReadings[3]).  When returned the readings will be populated in the array with the X axis at index 0, the Y axis at index 1, and the Z axis at index 2.
 </details>
 
 ---
@@ -81,7 +81,7 @@ Polls the sensor for accelerometer readings on the X, Y, and Z axes, converts th
 <details>
 <summary><b>read_gyro(double* gyroReadings)</b></summary>
 <h4>Description</h4>
-Polls the sensor for gyroscope readings on the X, Y, and Z axes, converts them to degrees per second units, and fills out the param double array with those values.  The only parameter for this function is an array of three doubles (ie. double gyroReadings[3]).  When returned, the readings will be populated in the array with the X axis at index 0, the Y axis at index 1, and the Z axis at index 2.
+Polls the sensor for gyroscope readings on the X, Y, and Z axes, converts them to degrees per second units, and fills out the param double array with those values.  The only parameter for this function is an array of three doubles (eg. double gyroReadings[3]).  When returned the readings will be populated in the array with the X axis at index 0, the Y axis at index 1, and the Z axis at index 2.
 </details>
 
 ---
