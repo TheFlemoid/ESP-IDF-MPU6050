@@ -73,7 +73,7 @@ After calibration, the module is up and ready for use.  Basic operation consists
 <details>
 <summary><b>read_accel (double* accelReadings)</b></summary>
 <h4>Description</h4>
-Polls the sensor for accelerometer readings on the X, Y, and Z axes, converts them to 'G' units, and fills out the param double array with those values.  The only parameter for this function is an array of three doubles (eg. `double accelReadings[3]`).  When returned the readings will be populated in the array with the X axis at index 0, the Y axis at index 1, and the Z axis at index 2.
+Polls the sensor for accelerometer readings on the X, Y, and Z axes, converts them to 'G' units, and fills out the param double array with those values.  The only parameter for this function is an array of three doubles (eg. double accelReadings[3]).  When returned the readings will be populated in the array with the X axis at index 0, the Y axis at index 1, and the Z axis at index 2.
 </details>
 
 ---
@@ -81,7 +81,7 @@ Polls the sensor for accelerometer readings on the X, Y, and Z axes, converts th
 <details>
 <summary><b>read_gyro (double* gyroReadings)</b></summary>
 <h4>Description</h4>
-Polls the sensor for gyroscope readings on the X, Y, and Z axes, converts them to degrees per second units, and fills out the param double array with those values.  The only parameter for this function is an array of three doubles (eg. `double gyroReadings[3]`).  When returned the readings will be populated in the array with the X axis at index 0, the Y axis at index 1, and the Z axis at index 2.
+Polls the sensor for gyroscope readings on the X, Y, and Z axes, converts them to degrees per second units, and fills out the param double array with those values.  The only parameter for this function is an array of three doubles (eg. double gyroReadings[3]).  When returned the readings will be populated in the array with the X axis at index 0, the Y axis at index 1, and the Z axis at index 2.
 </details>
 
 ---
