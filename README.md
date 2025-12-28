@@ -78,3 +78,17 @@ Polls the sensor for accelerometer readings on the X, Y, and Z axes, converts th
 
 ---
 
+<details>
+<summary><b>read_gyro(double* gyroReadings)</b></summary>
+<h4>Description</h4>
+Polls the sensor for gyroscope readings on the X, Y, and Z axes, converts them to degrees per second units, and fills out the param double array with those values.  The only parameter for this function is an array of three doubles (ie. double gyroReadings[3]).  When returned, the readings will be populated in the array with the X axis at index 0, the Y axis at index 1, and the Z axis at index 2.
+</details>
+
+---
+
+<details>
+<summary><b>read_temp(double* tempReading)</b></summary>
+<h4>Description</h4>
+Polls the sensor for the temperature reading, converts it to units of degrees celsius, and fills out the param double pointer with that value.  The only parameter for this function is a pointer to a double.
+</details>
+

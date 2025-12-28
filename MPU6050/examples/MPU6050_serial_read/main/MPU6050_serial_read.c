@@ -23,7 +23,7 @@
 i2c_master_bus_handle_t i2cBusHandle;
 double accelReadings[3];
 double gyroReadings[3];
-double tempReadings;
+double tempReading;
 
 static uint32_t ONE_HUNDRED_MILLI_DELAY = (100 / portTICK_PERIOD_MS);
 
@@ -54,10 +54,10 @@ void app_main(void) {
     // In a while loop, read the sensor and print the readings
     while (1) {
         read_accel(accelReadings);
-        read_temp(&tempReadings);
+        read_temp(&tempReading);
         read_gyro(gyroReadings);
         printf("Accel: x: %0.3f, y: %0.3f, z: %0.3f   Temp: %0.3f  Gyro: x: %0.3f, y: %0.3f, z: %0.3f\n", 
-                    accelReadings[0], accelReadings[1], accelReadings[2], tempReadings, gyroReadings[0], 
+                    accelReadings[0], accelReadings[1], accelReadings[2], tempReading, gyroReadings[0], 
                     gyroReadings[1], gyroReadings[2]);
         vTaskDelay(ONE_HUNDRED_MILLI_DELAY);
     }
